@@ -14,7 +14,7 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'gcp-service-account', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     script {
-                        def gcpProjectId = 'rag-medical-chatbot'
+                        def gcpProjectId = 'byteeit-testing-project'
                         def region = 'us-central1'
                         def repositoryName = 'llmops'
                         def imageName = 'rag-medical-chatbot'
