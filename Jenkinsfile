@@ -29,12 +29,21 @@ pipeline {
     gcloud auth configure-docker ''' + region + '''-docker.pkg.dev --quiet
     
     docker build -t ''' + imageName + ''':''' + tag + ''' .
+    trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ''' + imageName + ''':''' + tag + ''' || true
     docker tag ''' + imageName + ''':''' + tag + ''' ''' + imageFullTag + '''
     docker push ''' + imageFullTag + '''
 '''
                     }
                 }
             }
+        }
+    }
+    post {
+        success {
+            echo "Successfully built and pushed image with tag"
+        }
+        failure {
+            echo "Pipeline failed. Please check the logs."
         }
     }
 }
