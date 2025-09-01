@@ -1,8 +1,6 @@
 pipeline {
     agent any
 
-    
-
     stages {
         stage('Clone GitHub Repo') {
             steps {
@@ -12,7 +10,30 @@ pipeline {
                 }
             }
         }
+        stage('Build, Tag, and Push to GCP Artifact Registry') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-service-account', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    script {
+                        def gcpProjectId = 'rag-medical-chatbot'
+                        def region = 'us-central1'
+                        def repositoryName = 'llmops'
+                        def imageName = 'rag-medical-chatbot'
+                        def tag = "latest"
+                        def imageFullTag = "${region}-docker.pkg.dev/${gcpProjectId}/${repositoryName}/${imageName}:${tag}"
 
-        
+                        sh """
+                        gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                        gcloud config set project ${gcpProjectId}
+
+                        gcloud auth configure-docker ${region}-docker.pkg.dev --quiet
+
+                        docker build -t ${imageName}:${tag} .
+                        docker tag ${imageName}:${tag} ${imageFullTag}
+                        docker push ${imageFullTag}
+                        """
+                    }
+                }
+            }
+        }
     }
 }
