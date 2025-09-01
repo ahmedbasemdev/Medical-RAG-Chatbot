@@ -1,13 +1,21 @@
 pipeline {
-    agent {
-    docker {
-        image 'google/cloud-sdk:slim'
-        args '-v /var/run/docker.sock:/var/run/docker.sock'
-    }
-    }
-
+    agent any
 
     stages {
+
+      stage('Setup gcloud') {
+            steps {
+                sh '''
+                    if ! command -v gcloud &> /dev/null; then
+                        echo "Installing gcloud CLI..."
+                        curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
+                        tar -xf google-cloud-cli-linux-x86_64.tar.gz
+                        ./google-cloud-sdk/install.sh --quiet
+                        export PATH=$PATH:$(pwd)/google-cloud-sdk/bin
+                    fi
+                '''
+            }
+        }
         stage('Clone GitHub Repo') {
             steps {
                 script {
