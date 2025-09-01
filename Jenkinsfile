@@ -22,6 +22,7 @@ pipeline {
                         def imageFullTag = "${region}-docker.pkg.dev/${gcpProjectId}/${repositoryName}/${imageName}:${tag}"
 
                         sh """
+                        echo ls -l
                         gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
                         gcloud config set project ${gcpProjectId}
 
