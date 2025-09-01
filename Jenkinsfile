@@ -21,17 +21,17 @@ pipeline {
                         def tag = "latest"
                         def imageFullTag = "${region}-docker.pkg.dev/${gcpProjectId}/${repositoryName}/${imageName}:${tag}"
 
-                        sh """
-                        echo ls -l
-                        gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-                        gcloud config set project ${gcpProjectId}
-
-                        gcloud auth configure-docker ${region}-docker.pkg.dev --quiet
-
-                        docker build -t ${imageName}:${tag} .
-                        docker tag ${imageName}:${tag} ${imageFullTag}
-                        docker push ${imageFullTag}
-                        """
+                        sh '''
+    echo "Starting GCloud authentication and Docker push..."
+    gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
+    gcloud config set project ''' + gcpProjectId + '''
+    
+    gcloud auth configure-docker ''' + region + '''-docker.pkg.dev --quiet
+    
+    docker build -t ''' + imageName + ''':''' + tag + ''' .
+    docker tag ''' + imageName + ''':''' + tag + ''' ''' + imageFullTag + '''
+    docker push ''' + imageFullTag + '''
+'''
                     }
                 }
             }
