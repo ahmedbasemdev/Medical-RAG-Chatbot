@@ -1,25 +1,28 @@
-# Use the Jenkins image as the base image
-FROM jenkins/jenkins:lts
+## Parent image
+FROM python:3.10-slim
 
-# Switch to root user to install dependencies
-USER root
+## Essential environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Install prerequisites and Docker
-RUN apt-get update -y && \
-    apt-get install -y apt-transport-https ca-certificates curl gnupg software-properties-common && \
-    curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
-    echo "deb [arch=amd64] https://download.docker.com/linux/debian bullseye stable" > /etc/apt/sources.list.d/docker.list && \
-    apt-get update -y && \
-    apt-get install -y docker-ce docker-ce-cli containerd.io && \
-    apt-get clean
+## Work directory inside the docker container
+WORKDIR /app
 
-# Add Jenkins user to the Docker group (create if it doesn't exist)
-RUN groupadd -f docker && \
-    usermod -aG docker jenkins
+## Installing system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create the Docker directory and volume for DinD
-RUN mkdir -p /var/lib/docker
-VOLUME /var/lib/docker
+## Copying all contents from local to container
+COPY . .
 
-# Switch back to the Jenkins user
-USER jenkins
+## Install Python dependencies
+RUN pip install --no-cache-dir -e .
+
+## Expose only flask port
+EXPOSE 5000
+
+## Run the Flask app
+CMD ["python", "app/application.py"]
+
