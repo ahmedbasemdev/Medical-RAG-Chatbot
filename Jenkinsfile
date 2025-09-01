@@ -1,21 +1,26 @@
 pipeline {
     agent any
+    
+    environment {
+        GCLOUD_PATH = "${WORKSPACE}/google-cloud-sdk/bin"
+    }
 
     stages {
-
-      stage('Setup gcloud') {
+        stage('Setup gcloud') {
             steps {
                 sh '''
-                    if ! command -v gcloud &> /dev/null; then
+                    if [ ! -d "google-cloud-sdk" ]; then
                         echo "Installing gcloud CLI..."
                         curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
                         tar -xf google-cloud-cli-linux-x86_64.tar.gz
                         ./google-cloud-sdk/install.sh --quiet
-                        export PATH=$PATH:$(pwd)/google-cloud-sdk/bin
+                    else
+                        echo "gcloud CLI already installed"
                     fi
                 '''
             }
         }
+        
         stage('Clone GitHub Repo') {
             steps {
                 script {
@@ -24,6 +29,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build, Tag, and Push to GCP Artifact Registry') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-service-account', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
@@ -34,17 +40,19 @@ pipeline {
                         def imageName = 'rag-medical-chatbot'
                         def tag = "latest"
                         def imageFullTag = "${region}-docker.pkg.dev/${gcpProjectId}/${repositoryName}/${imageName}:${tag}"
-
-                        sh """
-                        gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
-                        gcloud config set project ${gcpProjectId}
-
-                        gcloud auth configure-docker ${region}-docker.pkg.dev --quiet
-
-                        docker build -t ${imageName}:${tag} .
-                        docker tag ${imageName}:${tag} ${imageFullTag}
-                        docker push ${imageFullTag}
-                        """
+                        
+                        // Use single quotes to avoid Groovy string interpolation for sensitive variables
+                        sh '''
+                            export PATH=$PATH:''' + env.GCLOUD_PATH + '''
+                            
+                            gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                            gcloud config set project ''' + gcpProjectId + '''
+                            gcloud auth configure-docker ''' + region + '''-docker.pkg.dev --quiet
+                            
+                            docker build -t ''' + imageName + ''':''' + tag + ''' .
+                            docker tag ''' + imageName + ''':''' + tag + ''' ''' + imageFullTag + '''
+                            docker push ''' + imageFullTag + '''
+                        '''
                     }
                 }
             }
