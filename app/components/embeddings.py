@@ -1,4 +1,4 @@
-from langchain_huggingface import HuggingFaceEmbeddingsq
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from app.common.logger import get_logger
 from app.common.custom_exception import CustomException
@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 def get_embedding_model():
       try:
             logger.info("Intializing our Huggingface embedding model")
-            model = HuggingFaceEmbeddingsq(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
             logger.info("Huggingface embedding model loaded sucesfully....")
 
             return model

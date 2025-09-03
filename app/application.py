@@ -1,7 +1,6 @@
 from flask import Flask,request,render_template,jsonify, session, redirect, url_for
 from app.components.retriever import create_qa_chain
 from dotenv import load_dotenv
-from makeupsafe import Makeup
 load_dotenv()
 import os
 
@@ -9,8 +8,9 @@ app = Flask(__name__)
 app.secret_key =  os.urandom(24)
 load_dotenv()
 
+from markupsafe import Markup
 def nl2br(value):
-      return Makeup(value.replace("\n","<br>"))
+    return Markup(value.replace("\n" , "<br>\n"))
 
 app.jinja_env.filters['nl2br'] = nl2br
 
