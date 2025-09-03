@@ -9,8 +9,8 @@ The pipeline builds a Docker image, scans it for vulnerabilities with **Trivy**,
 ## 📦 Clone the Project
 
 ```bash
-git clone https://github.com/data-guru0/LLMOPS-2-TESTING-MEDICAL.git
-cd LLMOPS-2-TESTING-MEDICAL
+git clone https://github.com/ahmedbasemdev/Medical-RAG-Chatbot.git
+cd Medical-RAG-Chatbot
 ```
 
 ---
